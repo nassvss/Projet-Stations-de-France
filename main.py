@@ -1,7 +1,9 @@
 import pandas as pd
+import requests
 
 # Charger le fichier
-df = pd.read_csv("prix-des-carburants-en-france-flux-instantane-v2.csv", sep=";")
+url = "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/prix-des-carburants-en-france-flux-instantane-v2/exports/csv?use_labels=true"
+df = pd.read_csv(url, sep=";")
 
 # Garder seulement les colonnes utiles
 df = df[["Adresse", "Ville", "Code postal", "latitude", "longitude",
@@ -16,13 +18,23 @@ while True:
     ville = input("Entrez une ville ? : ")
     stations_ville = df[df["Ville"].str.lower() == ville.strip().lower()]
     if len(stations_ville) > 0:
-        break  # La ville existe donc on passe à la suite
+        # La ville a des stations : son centre = la moyenne de leurs positions
+        lat_centre = stations_ville["latitude"].mean()
+        lon_centre = stations_ville["longitude"].mean()
+        break
     else:
-        print("Ville introuvable, réessaye (vérifie l'orthographe) !")
-
-# Le centre de la ville = la moyenne des positions de ses stations
-lat_centre = stations_ville["latitude"].mean()
-lon_centre = stations_ville["longitude"].mean()
+        # Pas de station dans cette ville : on demande sa position à l'API
+        print("Pas de station dans cette ville, je cherche sa position...")
+        reponse = requests.get("https://data.geopf.fr/geocodage/search",
+                               params={"q": ville, "type": "municipality", "limit": 1})
+        resultats = reponse.json()["features"]
+        if len(resultats) > 0:
+            print("Ville trouvée :", resultats[0]["properties"]["label"])
+            lon_centre = resultats[0]["geometry"]["coordinates"][0]
+            lat_centre = resultats[0]["geometry"]["coordinates"][1]
+            break
+        else:
+            print("Ville introuvable, vérifie l'orthographe !")
 
 # Choisir le carburant
 while True:

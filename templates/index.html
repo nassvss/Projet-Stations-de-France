@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Prix des carburants</title>
+<style>
+  body { font-family: sans-serif; max-width: 700px; margin: 30px auto; padding: 0 16px; }
+  form { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  input, select, button { padding: 8px; font-size: 1rem; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  th { background: #f0f0f0; }
+  .erreur { color: #b00020; }
+</style>
+</head>
+<body>
+<h1>⛽ Prix des carburants</h1>
+
+<form method="post">
+  <input name="ville" placeholder="Ville" value="{{ request.form.get('ville', 'Orly') }}" required>
+  <select name="carburant">
+    {% for c in carburants %}
+      <option value="{{ c }}" {% if request.form.get('carburant') == c %}selected{% endif %}>{{ c }}</option>
+    {% endfor %}
+  </select>
+  <input name="rayon" type="number" step="any" min="1" placeholder="Rayon (km)" value="{{ request.form.get('rayon', '10') }}" required>
+  <button type="submit">Chercher</button>
+</form>
+
+{% if message %}
+  <p class="erreur">{{ message }}</p>
+{% endif %}
+
+{% if stations %}
+<table>
+  <tr><th>Adresse</th><th>Ville</th><th>Prix (€)</th><th>Distance (km)</th></tr>
+  {% for s in stations %}
+  <tr>
+    <td>{{ s["Adresse"] }}</td>
+    <td>{{ s["Ville"] }}</td>
+    <td>{{ s["prix"] }}</td>
+    <td>{{ s["distance_km"] }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+</body>
+</html>
