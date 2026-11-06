@@ -2,29 +2,89 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Prix des carburants</title>
 <style>
-  body { font-family: sans-serif; max-width: 700px; margin: 30px auto; padding: 0 16px; }
-  form { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
-  input, select, button { padding: 8px; font-size: 1rem; }
-  table { border-collapse: collapse; width: 100%; }
-  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-  th { background: #f0f0f0; }
-  .erreur { color: #b00020; }
+  :root { --bg:#0e0e10; --card:#17171a; --bd:#2a2a30; --fg:#f4f1ea; --mut:#9a978f; --gold:#d4af6a; --gold2:#f0d99a; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--fg);
+    background: radial-gradient(900px 400px at 50% -10%, #231e12 0, var(--bg) 65%) no-repeat, var(--bg);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.5;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 48px 18px 60px; }
+  header { text-align: center; margin-bottom: 32px; }
+  .logo { color: var(--gold); letter-spacing: .3em; font-size: .75rem; text-transform: uppercase; }
+  h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: 2.2rem; margin: 8px 0; letter-spacing: .02em; }
+  .sub { color: var(--mut); margin: 0; font-size: .95rem; }
+
+  form {
+    display: grid; grid-template-columns: 2fr 1.2fr 1fr; gap: 12px;
+    background: var(--card); border: 1px solid var(--bd); border-radius: 16px; padding: 20px;
+  }
+  label { display: flex; flex-direction: column; gap: 6px; font-size: .75rem; color: var(--mut); text-transform: uppercase; letter-spacing: .08em; }
+  input, select {
+    font: inherit; font-size: 1rem; padding: 12px 14px; color: var(--fg);
+    background: #101013; border: 1px solid var(--bd); border-radius: 10px; width: 100%;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212,175,106,.18); }
+  button {
+    grid-column: 1 / -1; font: inherit; font-weight: 600; font-size: 1rem; padding: 14px; cursor: pointer;
+    color: #1a1407; border: 0; border-radius: 10px;
+    background: linear-gradient(135deg, var(--gold2), var(--gold));
+  }
+  button:disabled { opacity: .6; cursor: wait; }
+
+  .erreur { color: #ff8a8a; text-align: center; margin-top: 24px; }
+
+  .liste { margin-top: 28px; display: grid; gap: 12px; }
+  .station {
+    display: flex; align-items: center; gap: 16px; padding: 16px 18px;
+    background: var(--card); border: 1px solid var(--bd); border-radius: 14px;
+  }
+  .station.premier { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(212,175,106,.25), 0 10px 30px rgba(0,0,0,.4); }
+  .rang { font-family: Georgia, serif; color: var(--mut); font-size: 1.1rem; width: 22px; text-align: center; }
+  .prix { font-family: Georgia, serif; font-size: 1.8rem; color: var(--gold2); min-width: 96px; }
+  .prix small { font-size: .9rem; color: var(--mut); }
+  .info { flex: 1; min-width: 0; }
+  .info b { display: block; font-weight: 600; overflow-wrap: anywhere; }
+  .info span { color: var(--mut); font-size: .9rem; }
+  .badge { display: inline-block; font-size: .65rem; text-transform: uppercase; letter-spacing: .12em; color: #1a1407; background: var(--gold); border-radius: 99px; padding: 2px 9px; margin-bottom: 4px; }
+  .dist { text-align: right; color: var(--mut); font-size: .9rem; white-space: nowrap; }
+
+  @media (max-width: 600px) {
+    h1 { font-size: 1.7rem; }
+    form { grid-template-columns: 1fr; }
+    .station { flex-wrap: wrap; gap: 8px 14px; }
+    .rang { display: none; }
+    .info { flex-basis: 100%; order: 3; }
+    .dist { margin-left: auto; }
+  }
 </style>
 </head>
 <body>
-<h1>⛽ Prix des carburants</h1>
+<main>
+<header>
+  <div class="logo">Stations de France</div>
+  <h1>Prix des carburants</h1>
+  <p class="sub">Les stations les moins chères autour de vous, prix officiels du gouvernement.</p>
+</header>
 
 <form method="post">
-  <input name="ville" placeholder="Ville" value="{{ request.form.get('ville', 'Orly') }}" required>
-  <select name="carburant">
-    {% for c in carburants %}
-      <option value="{{ c }}" {% if request.form.get('carburant') == c %}selected{% endif %}>{{ c }}</option>
-    {% endfor %}
-  </select>
-  <input name="rayon" type="number" step="any" min="1" placeholder="Rayon (km)" value="{{ request.form.get('rayon', '10') }}" required>
-  <button type="submit">Chercher</button>
+  <label>Ville
+    <input name="ville" placeholder="Ex : Orly" value="{{ request.form.get('ville', 'Orly') }}" required>
+  </label>
+  <label>Carburant
+    <select name="carburant">
+      {% for c in carburants %}
+        <option value="{{ c }}" {% if request.form.get('carburant') == c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Rayon (km)
+    <input name="rayon" type="number" step="any" min="1" value="{{ request.form.get('rayon', '10') }}" required>
+  </label>
+  <button id="btn" type="submit">Chercher</button>
 </form>
 
 {% if message %}
@@ -32,17 +92,30 @@
 {% endif %}
 
 {% if stations %}
-<table>
-  <tr><th>Adresse</th><th>Ville</th><th>Prix (€)</th><th>Distance (km)</th></tr>
+<div class="liste">
   {% for s in stations %}
-  <tr>
-    <td>{{ s["Adresse"] }}</td>
-    <td>{{ s["Ville"] }}</td>
-    <td>{{ s["prix"] }}</td>
-    <td>{{ s["distance_km"] }}</td>
-  </tr>
+  <div class="station {% if loop.first %}premier{% endif %}">
+    <div class="rang">{{ loop.index }}</div>
+    <div class="prix">{{ s["prix"] }} <small>€</small></div>
+    <div class="dist">{{ s["distance_km"] }} km</div>
+    <div class="info">
+      {% if loop.first %}<span class="badge">Le moins cher</span>{% endif %}
+      <b>{{ s["Adresse"] }}</b>
+      <span>{{ s["Ville"] }}</span>
+    </div>
+  </div>
   {% endfor %}
-</table>
+</div>
 {% endif %}
+</main>
+
+<script>
+  // Pendant la recherche (la première peut prendre quelques secondes)
+  document.querySelector("form").addEventListener("submit", function () {
+    var b = document.getElementById("btn");
+    b.disabled = true;
+    b.textContent = "Recherche en cours…";
+  });
+</script>
 </body>
 </html>
